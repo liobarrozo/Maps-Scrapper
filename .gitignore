@@ -1,5 +1,7 @@
 __pycache__/
 *.pyc
 result.csv
-output.csv
+*.csv
+.DS_Store
+venv/
 playwright/.cache/ 
