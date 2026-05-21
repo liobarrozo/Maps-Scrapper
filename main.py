@@ -175,8 +175,8 @@ def scrape_places(search_for: str, total: int) -> List[Place]:
             logging.info(f"Total to extract: {total}")
             for idx in range(total):
                 try:
-                    # Dynamically locate the listing in the sidebar by index to prevent DOM recycling issues
-                    listing = page.locator('a.hfpxzc').nth(idx)
+                    # Dynamically locate the listing in the sidebar by index using the exact count selector
+                    listing = page.locator('//a[contains(@href, "https://www.google.com/maps/place")]').nth(idx)
                     
                     # Scroll the listing to the center of the viewport using native browser JS
                     listing.evaluate("el => el.scrollIntoView({ block: 'center', inline: 'nearest' })")
@@ -198,37 +198,8 @@ def scrape_places(search_for: str, total: int) -> List[Place]:
                         places.append(place)
                     else:
                         logging.warning(f"No name found for listing {idx+1}, skipping.")
-                        
-                    # Close the details pane so the sidebar results list is uncovered
-                    close_selectors = [
-                        'button[jsaction*="pane.close"]',
-                        'button[aria-label="Close"]',
-                        'button[aria-label="Cerrar"]',
-                        'button[aria-label*="close" i]',
-                        'button[aria-label*="cerrar" i]'
-                    ]
-                    closed = False
-                    for selector in close_selectors:
-                        try:
-                            if page.locator(selector).count() > 0:
-                                page.locator(selector).first.click(timeout=1000)
-                                closed = True
-                                break
-                        except Exception:
-                            pass
-                    if not closed:
-                        # Fallback: Press Escape to close panel
-                        page.keyboard.press("Escape")
-                    time.sleep(1.0)
-                    
                 except Exception as e:
                     logging.warning(f"Failed to extract listing {idx+1}: {e}")
-                    # Try to press Escape as a general rescue if something fails to close panel
-                    try:
-                        page.keyboard.press("Escape")
-                        time.sleep(1.0)
-                    except Exception:
-                        pass
         finally:
             browser.close()
     return places
